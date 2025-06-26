@@ -1,0 +1,725 @@
+﻿O contexto geral deste projeto é a criação de um sistema tecnológico para gestão e monitoramento de casos de cólera em Angola. O sistema visa resolver problemas reais enfrentados pelo Ministério da Saúde de Angola durante um surto de cólera que afeta várias províncias, com destaque para Luanda.
+________________
+
+
+Problema de Saúde Pública
+* Surto de cólera: Angola enfrenta um surto crítico, principalmente em Luanda, mas também em outras províncias como Bengo, Huambo, Cabinda e Zaire.
+
+* Falta de sistema unificado: Não há uma plataforma digital eficiente para rastreamento rápido de casos, triagem inteligente e tomada de decisão baseada em dados em tempo real.
+
+* Déficit de informação: Dados desorganizados e falta de mecanismos automatizados para mapeamento de pacientes, encaminhamento a hospitais e geração de relatórios.
+
+________________
+
+
+Objetivo do Projeto
+Desenvolver uma solução tecnológica completa que permita:
+   1. Triagem inteligente: Identificar possíveis casos de cólera com base em sintomas.
+
+   2. Gestão de pacientes: Cadastro, fichas clínicas e geração de QR Codes para identificação rápida.
+
+   3. Encaminhamento automático: Usando geolocalização (Google Maps API) para direcionar pacientes ao hospital mais próximo.
+
+   4. Monitoramento em tempo real: Dashboard com dados atualizados (casos por região, faixa etária, sexo, etc.).
+
+   5. Segurança de dados: Criptografia de informações sensíveis (dados pessoais, resultados de exames).
+
+________________
+
+
+Público-Alvo
+      * Gestores de saúde: Para análise de dados e tomada de decisões.
+
+      * Profissionais médicos: Para triagem e acompanhamento de pacientes.
+
+      * População geral: Acesso a informações preventivas e pontos de atendimento.
+
+________________
+
+
+Tecnologias Propostas
+         * Back-end: Laravel (PHP) com API RESTful, autenticação via JWT e criptografia AES-256.
+
+         * Front-end: Angular (com versão mobile em React Native).
+
+         * Integrações: Google Maps API (geolocalização), bibliotecas de gráficos (para relatórios).
+
+         * Relatórios: Exportação em PDF e visualização interativa de dados.
+
+________________
+
+
+Importância Acadêmica e Social
+            * Para os estudantes: Aplicação prática de conhecimentos em programação, banco de dados e segurança, seguindo boas práticas de engenharia de software.
+
+            * Para Angola: Uma ferramenta que pode salvar vidas ao agilizar a resposta epidemiológica, reduzindo a propagação da cólera.
+
+Em resumo, o projeto combina formação técnica avançada com um impacto social direto, alinhando-se às necessidades urgentes do sistema de saúde angolano.
+________________
+________________
+
+
+Documentação Técnica: Sistema de Gestão e Monitoramento de Cólera em Angola
+1. Visão Geral
+O sistema é uma plataforma web/mobile para gestão epidemiológica, com:
+               * Triagem inteligente de casos suspeitos de cólera.
+
+               * Geolocalização e encaminhamento automático para hospitais.
+
+               * Dashboard em tempo real para análise de dados.
+
+               * Relatórios exportáveis (PDF, gráficos).
+
+               * Autenticação segura e criptografia de dados sensíveis.
+
+________________
+
+
+2. Arquitetura do Sistema
+2.1. Diagrama de Componentes
+[Front-end (Angular)] ← API REST → [Back-end (Laravel)]  
+                              ↓  
+                      [Banco de Dados (MySQL)]  
+                              ↓  
+           [Google Maps API] ← Dados de Localização  
+                              ↓  
+                   [Serviço de Criptografia (AES-256)]  
+
+
+2.2. Fluxo Principal
+                  1. Paciente realiza triagem via formulário web/mobile.
+
+                  2. Sistema analisa sintomas e sugere risco de cólera.
+
+                  3. Se positivo, gera ficha com QR Code e encaminha para hospital mais próximo (via Google Maps API).
+
+                  4. Gestores de saúde acessam dashboard com dados consolidados.
+
+________________
+
+
+3. Tecnologias e Ferramentas
+Camada
+	Tecnologias
+	Front-end
+	Angular (Bootstrap/Tailwind CSS para UI responsiva)
+	Mobile
+	React Native (opcional)
+	Back-end
+	Laravel (PHP 8+), API RESTful, Sanctum (JWT)
+	Banco de Dados
+	MySQL (com migrations do Laravel)
+	Mapas
+	Google Maps API (geolocalização de hospitais e rotas)
+	Segurança
+	Criptografia AES-256, rate limiting, CORS, CSRF protection
+	Relatórios
+	Chart.js / D3.js (gráficos), PDF export (Laravel DomPDF ou similar)
+	________________
+
+
+
+
+
+
+4.2. Principais Endpoints da API
+Endpoint
+	Método
+	Descrição
+	/api/v1/auth/login
+	POST
+	Autenticação (retorna JWT)
+	/api/v1/triagem
+	POST
+	Submissão de triagem (sintomas → risco)
+	/api/v1/pacientes
+	GET
+	Lista pacientes (filtro por região)
+	/api/v1/hospitais/nearby
+	GET
+	Hospitais próximos (lat/long via Google Maps)
+	/api/v1/reports/casos
+	GET
+	Dados para gráficos (JSON/PDF)
+	________________
+
+
+5. Funcionalidades-Chave e Implementação
+5.1. Triagem Inteligente
+                     * Lógica no Back-end (CholeraScreening.php):
+
+public function assessRisk(array $symptoms) {
+    $highRiskSymptoms = ['diarrhea_severe', 'vomiting', 'dehydration'];
+    $score = 0;
+
+
+    foreach ($symptoms as $symptom) {
+        if (in_array($symptom, $highRiskSymptoms)) $score += 3;
+        else $score += 1;
+    }
+
+
+    return $score >= 5 ? 'high_risk' : 'low_risk';
+}
+
+
+5.2. Geolocalização com Google Maps API
+                        * Exemplo de chamada:
+
+// Front-end (React)
+const findNearestHospital = async (lat, lng) => {
+    const response = await axios.get(`/api/v1/hospitals/nearby?lat=${lat}&lng=${lng}`);
+    return response.data; // Lista ordenada por distância
+};
+
+
+5.3. Geração de QR Code (Laravel + Front-end)
+                           * Back-end (gera dados para QR):
+
+public function generatePatientQR(Patient $patient) {
+    $encryptedData = EncryptionService::encrypt([
+        'id' => $patient->id,
+        'name' => $patient->name,
+        'risk_level' => $patient->cholera_risk
+    ]);
+
+
+    return response()->json(['qr_data' => $encryptedData]);
+}
+
+
+                              * Front-end (exibe QR com react-qr-code):
+
+<QRCode value={patient.qr_data} size={128} />
+
+
+________________
+
+
+6. Segurança
+                                 * Autenticação: JWT com expiração (1h) + refresh token.
+
+                                 * Criptografia: AES-256 para:
+
+                                    * Contactos de pacientes.
+
+                                    * Resultados de triagem.
+
+                                    * Dados de geolocalização.
+
+                                       * Middleware: Rate limiting (100 requests/min) e CORS restrito.
+
+
+________________
+
+
+Requisitos Funcionais (RF) e Não-Funcionais (RNF) - Sistema de Gestão de Cólera
+Requisitos Funcionais (RF)
+Módulo de Autenticação e Gestão de Utilizadores
+                                          * RF01: O sistema deve permitir login seguro via JWT (tokens expiráveis e renováveis).
+
+                                          * RF02: Deve suportar diferentes perfis (administrador, médico, gestor de saúde, técnico).
+
+                                          * RF03: O administrador pode adicionar/remover utilizadores e definir permissões.
+
+Módulo de Triagem Inteligente
+                                             * RF04: O sistema deve avaliar sintomas e calcular risco de cólera (baixo/médio/alto).
+
+                                             * RF05: Deve gerar um QR Code com dados do paciente (nome, BI, resultado da triagem).
+
+                                             * RF06: Deve sugerir encaminhamento automático para o hospital mais próximo (via Google Maps API).
+
+Módulo de Gestão de Pacientes
+                                                * RF07: Cadastro completo de pacientes (dados pessoais, sintomas, histórico médico).
+
+                                                * RF08: Pesquisa e filtro de pacientes por região, data ou status de risco.
+
+                                                * RF09: Exportação de fichas em PDF (com dados criptografados).
+
+Módulo de Gestão de Estruturas de Saúde
+                                                   * RF10: Cadastro de hospitais, centros de saúde e postos médicos (com geolocalização).
+
+                                                   * RF11: Atualização em tempo real de disponibilidade de leitos e recursos.
+
+                                                   * RF12: Rastreamento de ambulâncias (status e localização).
+
+Módulo de Relatórios e Dashboard
+                                                      * RF13: Geração de gráficos (casos por região, evolução temporal, faixa etária).
+
+                                                      * RF14: Painel administrativo com indicadores em tempo real (KPIs de surto).
+
+                                                      * RF15: Exportação de relatórios em PDF/Excel.
+
+Módulo de Notificações
+                                                         * RF16: Alertas automáticos para gestores em caso de surto em nova região.
+
+                                                         * RF17: Envio de SMS/e-mail para pacientes de alto risco.
+
+________________
+
+
+Requisitos Não-Funcionais (RNF)
+Desempenho
+                                                            * RNF01: O sistema deve suportar ≥1.000 requisições simultâneas sem degradação.
+
+                                                            * RNF02: Tempo de resposta <2 segundos para 95% das operações.
+
+Segurança
+                                                               * RNF03: Criptografia AES-256 para dados sensíveis (contactos, diagnósticos).
+
+                                                               * RNF04: Tokens JWT com expiração em 1h + renovação via refresh token.
+
+                                                               * RNF05: Logs de auditoria para todas as operações críticas (ex: acesso a dados médicos).
+
+Usabilidade
+                                                                  * RNF06: Interface responsiva (funciona em desktop, tablet e mobile).
+
+                                                                  * RNF07: Suporte a Português e línguas locais (opcional).
+
+Confiabilidade
+                                                                     * RNF08: Backup automático diário dos dados.
+
+                                                                     * RNF09: Disponibilidade ≥99% (exceto em manutenção agendada).
+
+Integrações
+                                                                        * RNF10: API RESTful compatível com JSON.
+
+                                                                        * RNF11: Integração com Google Maps API para geolocalização.
+
+Escalabilidade
+                                                                           * RNF12: Arquitetura modular para futuras expansões (ex: inclusão de outras doenças).
+
+                                                                           * RNF13: Banco de dados escalável (MySQL/PostgreSQL com replicação).
+
+Compatibilidade
+                                                                              * RNF14: Funciona nos principais navegadores (Chrome, Firefox, Edge, Safari).
+
+                                                                              * RNF15: Versão mobile via PWA ou React Native (opcional).
+
+Documentação
+                                                                                 * RNF16: Documentação da API em OpenAPI/Swagger.
+
+                                                                                 * RNF17: Manual técnico para desenvolvedores e guia do usuário.
+
+________________
+
+
+Priorização (Exemplo)
+Requisito
+	Prioridade
+	Complexidade
+	RF01 (Login JWT)
+	Alta
+	Média
+	RF04 (Triagem)
+	Crítica
+	Alta
+	RF10 (Gestão de Hospitais)
+	Alta
+	Média
+	RNF03 (Criptografia)
+	Crítica
+	Alta
+	RNF06 (Responsividade)
+	Média
+	Baixa
+	Legenda:
+                                                                                    * Crítica: Essencial para o funcionamento básico.
+
+                                                                                    * Alta: Importante para a entrega do MVP.
+
+                                                                                    * Média: Pode ser desenvolvido em fases posteriores.
+
+________________
+
+
+Casos de Uso - Sistema de Gestão de Cólera
+1. Diagrama de Casos de Uso
+
+
+2. Descrição Detalhada dos Casos de Uso
+UC01: Autenticação no Sistema
+                                                                                       * Atores: Administrador, Médico, Gestor, Técnico.
+
+                                                                                       * Pré-condições: Nenhuma.
+
+                                                                                       * Fluxo Principal:
+
+                                                                                          * O utilizador insere email e senha.
+
+                                                                                          * O sistema valida as credenciais.
+
+                                                                                          * Se válidas, gera um token JWT e redireciona para o dashboard.
+
+                                                                                             * Fluxos Alternativos:
+
+                                                                                                * Credenciais inválidas: Exibe mensagem de erro.
+
+                                                                                                * Token expirado: Solicita renovação via refresh token.
+
+________________
+
+
+UC02: Realizar Triagem de Paciente
+                                                                                                   * Atores: Médico, Paciente (autotriagem).
+
+                                                                                                   * Pré-condições: Utilizador autenticado.
+
+                                                                                                   * Fluxo Principal:
+
+                                                                                                      * O médico/paciente insere sintomas (ex: diarreia, vômitos).
+
+                                                                                                      * O sistema calcula o risco (baixo/médio/alto).
+
+                                                                                                      * Gera QR Code com dados do paciente (se risco alto).
+
+                                                                                                      * Sugere o hospital mais próximo (via Google Maps API).
+
+                                                                                                         * Fluxos Alternativos:
+
+                                                                                                            * Risco baixo: Recomenda cuidados caseiros e monitoramento.
+
+________________
+
+
+UC03: Cadastrar Hospital/Posto de Saúde
+                                                                                                               * Atores: Administrador, Gestor.
+
+                                                                                                               * Pré-condições: Permissão de administrador.
+
+                                                                                                               * Fluxo Principal:
+
+                                                                                                                  * O gestor insere dados (nome, localização GPS, tipo de estrutura).
+
+                                                                                                                  * O sistema valida e armazena no banco de dados.
+
+                                                                                                                  * Atualiza a lista de hospitais disponíveis.
+
+                                                                                                                     * Regras de Negócio:
+
+                                                                                                                        * Coordenadas GPS são obrigatórias.
+
+________________
+
+
+UC04: Gerar Relatório Epidemiológico
+                                                                                                                           * Atores: Gestor de Saúde.
+
+                                                                                                                           * Pré-condições: Dados de pacientes disponíveis.
+
+                                                                                                                           * Fluxo Principal:
+
+                                                                                                                              * O gestor seleciona filtros (região, período, faixa etária).
+
+                                                                                                                              * O sistema gera gráficos (barras, linhas, mapas de calor).
+
+                                                                                                                              * Permite exportar como PDF/Excel.
+
+                                                                                                                                 * Extensões:
+
+                                                                                                                                    * Dados insuficientes: Sistema notifica o gestor.
+
+________________
+
+
+UC05: Encaminhar Paciente para Hospital
+                                                                                                                                       * Atores: Médico, Sistema (automático).
+
+                                                                                                                                       * Pré-condições: Triagem com risco alto.
+
+                                                                                                                                       * Fluxo Principal:
+
+                                                                                                                                          * O sistema identifica os 3 hospitais mais próximos (via GPS do paciente).
+
+                                                                                                                                          * Exibe rotas e tempos de deslocamento.
+
+                                                                                                                                          * O médico confirma o encaminhamento e registra no prontuário.
+
+                                                                                                                                             * Regras de Negócio:
+
+                                                                                                                                                * Prioriza hospitais com leitos disponíveis.
+
+________________
+
+
+UC06: Monitorar Ambulâncias em Tempo Real
+                                                                                                                                                   * Atores: Técnico de Logística.
+
+                                                                                                                                                   * Pré-condições: Ambulâncias cadastradas com dispositivos GPS.
+
+                                                                                                                                                   * Fluxo Principal:
+
+                                                                                                                                                      * O sistema exibe localização atual das ambulâncias no mapa.
+
+                                                                                                                                                      * Emite alertas se uma ambulância estiver parada por mais de 10 minutos.
+
+                                                                                                                                                         * Fluxos Alternativos:
+
+                                                                                                                                                            * Sem sinal GPS: Marca ambulância como "indisponível".
+
+________________
+
+
+3. Diagrama de Sequência (Exemplo: UC02 - Triagem)
+Paciente -> Sistema: Submete sintomas
+Sistema -> Lógica de Triagem: Calcula risco
+Lógica de Triagem -> Sistema: Retorna "alto risco"
+Sistema -> Google Maps API: Solicita hospitais próximos
+Google Maps API -> Sistema: Retorna lista ordenada
+Sistema -> Paciente: Exibe QR Code + opções de encaminhamento
+
+
+________________
+
+
+4. Regras de Negócio Críticas
+                                                                                                                                                               * RN01: Pacientes com "alto risco" devem ser encaminhados em ≤1 hora.
+
+                                                                                                                                                               * RN02: Dados pessoais são criptografados com AES-256.
+
+                                                                                                                                                               * RN03: Apenas médicos podem alterar diagnósticos após registro.
+
+________________
+
+
+5. Casos de Uso Adicionais (Opcionais)
+                                                                                                                                                                  * UC07: Enviar alertas de prevenção via SMS para zonas de risco.
+
+                                                                                                                                                                  * UC08: Integração com laboratórios para resultados de exames.
+
+________________
+
+
+
+
+________________
+
+
+Modelo Entidade-Relacionamento (MER) - Sistema de Gestão de Cólera
+1. Principais Entidades e Atributos
+Entidade: Usuario
+                                                                                                                                                                     * usuario_id (PK)
+
+                                                                                                                                                                     * nome
+
+                                                                                                                                                                     * email (único)
+
+                                                                                                                                                                     * senha (hash)
+
+                                                                                                                                                                     * tipo (enum: admin, medico, gestor, tecnico)
+
+                                                                                                                                                                     * data_criacao
+
+Entidade: Paciente
+                                                                                                                                                                        * paciente_id (PK)
+
+                                                                                                                                                                        * nome
+
+                                                                                                                                                                        * bi_numero (único)
+
+                                                                                                                                                                        * telefone
+
+                                                                                                                                                                        * data_nascimento
+
+                                                                                                                                                                        * endereco
+
+                                                                                                                                                                        * latitude (opcional)
+
+                                                                                                                                                                        * longitude (opcional)
+
+Entidade: Triagem
+                                                                                                                                                                           * triagem_id (PK)
+
+                                                                                                                                                                           * paciente_id (FK → Paciente)
+
+                                                                                                                                                                           * usuario_id (FK → Usuario, médico responsável)
+
+                                                                                                                                                                           * data_triagem
+
+                                                                                                                                                                           * sintomas (JSON: ex: {"diarreia": true, "vomito": false})
+
+                                                                                                                                                                           * nivel_risco (enum: baixo, medio, alto)
+
+                                                                                                                                                                           * qr_code
+
+Entidade: Hospital
+                                                                                                                                                                              * hospital_id (PK)
+
+                                                                                                                                                                              * nome
+
+                                                                                                                                                                              * tipo (enum: geral, municipal, centro_saude)
+
+                                                                                                                                                                              * latitude (obrigatório)
+
+                                                                                                                                                                              * longitude (obrigatório)
+
+                                                                                                                                                                              * leitos_disponiveis
+
+________________
+Entidade: Encaminhamento
+                                                                                                                                                                                 * encaminhamento_id (PK)
+
+                                                                                                                                                                                 * triagem_id (FK → Triagem)
+
+                                                                                                                                                                                 * hospital_id (FK → Hospital)
+
+                                                                                                                                                                                 * data_encaminhamento
+
+                                                                                                                                                                                 * status (enum: pendente, concluído, cancelado)
+
+Entidade: Relatorio
+                                                                                                                                                                                    * relatorio_id (PK)
+
+                                                                                                                                                                                    * usuario_id (FK → Usuario, gestor que gerou)
+
+                                                                                                                                                                                    * tipo (enum: casos_por_regiao, evolucao_temporal)
+
+                                                                                                                                                                                    * periodo_inicio
+
+                                                                                                                                                                                    * periodo_fim
+
+                                                                                                                                                                                    * dados (JSON)
+
+________________
+2. Relacionamentos
+Usuario → Triagem
+                                                                                                                                                                                       * 1:N (um médico pode realizar várias triagens)
+
+                                                                                                                                                                                       * Médicos registram triagens.
+
+Paciente → Triagem
+                                                                                                                                                                                          * 1:N (um paciente pode ter várias triagens)
+
+                                                                                                                                                                                          * Cada triagem está associada a um paciente.
+
+Triagem → Encaminhamento
+                                                                                                                                                                                             * 1:1 (cada triagem de alto risco gera um encaminhamento)
+
+                                                                                                                                                                                             * Só há encaminhamento em casos graves.
+
+Hospital → Encaminhamento
+                                                                                                                                                                                                * 1:N (um hospital pode receber múltiplos encaminhamentos)
+
+Usuario → Relatorio
+                                                                                                                                                                                                   * 1:N (um gestor pode gerar vários relatórios)
+
+
+
+________________
+4. Regras de Negócio no MER
+                                                                                                                                                                                                      1. Integridade Referencial
+
+                                                                                                                                                                                                         * Se um Paciente for deletado, suas Triagens são mantidas como histórico (marcadas "inativo").
+
+                                                                                                                                                                                                         * Se um Hospital for removido, os Encaminhamentos devem ser redirecionados ou cancelados.
+
+                                                                                                                                                                                                            2. Atributos Derivados
+
+                                                                                                                                                                                                               * leitos_disponiveis é atualizado automaticamente após cada Encaminhamento.
+
+                                                                                                                                                                                                                  3. Restrições
+
+                                                                                                                                                                                                                     * nivel_risco = 'alto' somente se houver sintomas críticos (ex: diarreia severa + desidratação).
+
+________________
+
+
+
+
+________________
+
+
+Tech Stack Recomendada para o Sistema de Gestão de Cólera
+________________
+
+
+1. Front-end
+Web App
+Tecnologia
+	Finalidade
+	Justificativa
+	Angular
+	Interface principal (dashboard, formulários)
+	Componentização, vasto ecossistema, compatibilidade com mobile (via React Native)
+	Tailwind CSS
+	Estilização rápida e responsiva
+	Facilidade para criar designs consistentes sem sair do JSX
+	Chart.js / D3.js
+	Gráficos interativos (relatórios epidemiológicos)
+	Visualização profissional de dados
+	Google Maps API
+	Geolocalização de hospitais e rotas
+	Padrão do mercado para mapas
+	QR Code
+	Geração de QR Codes para pacientes
+	Biblioteca leve e fácil de integrar
+	________________
+Mobile (Opcional)
+Tecnologia
+	Finalidade
+	React Native
+	Versão mobile para triagem em campo
+	Expo
+	Acelera desenvolvimento (câmera, GPS, etc.)
+	________________
+
+
+2. Back-end
+Tecnologia
+	Finalidade
+	Justificativa
+	Laravel (PHP 8+)
+	API RESTful, lógica de negócio, autenticação
+	Framework robusto com ORM, migrations e segurança integrada
+	Sanctum
+	Autenticação via tokens JWT
+	Simples para SPAs e mobile
+	MySQL 
+	Banco de dados relacional
+	Escalável; PostgreSQL com PostGIS para geolocalização
+	Redis (opcional)
+	Cache de dados frequentes
+	Melhora performance em alta demanda
+	Laravel Excel
+	Exportação de relatórios XLSX/CSV
+	Manipulação fácil de planilhas
+	Laravel DomPDF
+	Geração de PDFs (fichas, relatórios)
+	Renderização server-side
+	________________
+
+
+3. Infraestrutura e DevOps
+Tecnologia
+	Finalidade
+	Docker
+	Containerização (Laravel + MySQL + Nginx)
+	AWS / DigitalOcean
+	Hospedagem em cloud (EC2 + RDS)
+	GitHub Actions
+	CI/CD (testes e deploy automáticos)
+	Nginx
+	Servidor web/reverse proxy
+	Let’s Encrypt
+	Certificados SSL gratuitos (HTTPS obrigatório)
+	________________
+
+
+4. Segurança
+Tecnologia/Técnica
+	Aplicação
+	AES-256
+	Criptografia de dados sensíveis no banco
+	CORS
+	Restrição de domínios permitidos
+	Rate Limiting
+	Limite de requisições por IP
+	Logs de Auditoria
+	Registro de ações críticas (ex: acesso a dados médicos)
+	________________
+
+
+Fluxo de Desenvolvimento Recomendado
+
+
+                                                                                                                                                                                                                        * Backup diário automatizado no servidor cloud.
