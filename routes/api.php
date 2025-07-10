@@ -10,6 +10,8 @@ use App\Http\Controllers\Api\DirecaoMunicipalController;
 use App\Http\Controllers\Api\GabineteProvincialController;
 use App\Http\Controllers\Api\AmbulanciaController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\RemocaoPacienteController;
+use App\Http\Controllers\RemocaoAmbulanciaController;
 
 
 // Rotas públicas de autenticação
@@ -66,6 +68,9 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Usuários
     Route::get('/usuarios', [\App\Http\Controllers\Api\UserController::class, 'index']);
+    Route::delete('/usuarios/{id}', [\App\Http\Controllers\Api\UserController::class, 'destroy']);
+    Route::put('/usuarios/{id}', [\App\Http\Controllers\Api\UserController::class, 'update']);
+    Route::patch('/usuarios/{id}', [\App\Http\Controllers\Api\UserController::class, 'update']);
 
     // Admin
     Route::post('/admin/permitir-acesso', [\App\Http\Controllers\Api\AdminController::class, 'permitirAcesso']);
@@ -73,6 +78,20 @@ Route::middleware('auth:sanctum')->group(function () {
     // Logs
     Route::get('/logs', [\App\Http\Controllers\Api\LogController::class, 'index']);
     Route::post('/logs', [\App\Http\Controllers\Api\LogController::class, 'store']);
+
+    // Remoção de Pacientes
+    Route::post('/remocao-pacientes', [RemocaoPacienteController::class, 'store']);
+    Route::get('/remocao-pacientes/pendentes', [RemocaoPacienteController::class, 'pendentes']);
+    Route::post('/remocao-pacientes/{id}/aprovar', [RemocaoPacienteController::class, 'aprovar']);
+    Route::post('/remocao-pacientes/{id}/recusar', [RemocaoPacienteController::class, 'recusar']);
+    Route::get('/remocao-pacientes/minhas', [RemocaoPacienteController::class, 'minhas']);
+
+    // Remoção de Ambulâncias
+    Route::post('/remocao-ambulancias', [\App\Http\Controllers\RemocaoAmbulanciaController::class, 'store']);
+    Route::get('/remocao-ambulancias/pendentes', [\App\Http\Controllers\RemocaoAmbulanciaController::class, 'pendentes']);
+    Route::post('/remocao-ambulancias/{id}/aprovar', [\App\Http\Controllers\RemocaoAmbulanciaController::class, 'aprovar']);
+    Route::post('/remocao-ambulancias/{id}/recusar', [\App\Http\Controllers\RemocaoAmbulanciaController::class, 'recusar']);
+    Route::get('/remocao-ambulancias/minhas', [RemocaoAmbulanciaController::class, 'minhas']);
 });
 
 // Fallback

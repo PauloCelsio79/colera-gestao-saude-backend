@@ -76,9 +76,9 @@ class User extends Authenticatable
         return $this->tipo === 'admin';
     }
 
-    public function isMedico()
+    public function isEnfermeiro()
     {
-        return $this->tipo === 'medico';
+        return $this->tipo === 'enfermeiro';
     }
 
     public function isGestor()

@@ -53,4 +53,9 @@ class Paciente extends Model
     {
         return $this->data_nascimento->age;
     }
-} 
+
+    public function encaminhamentos()
+    {
+        return $this->hasMany(\App\Models\Encaminhamento::class);
+    }
+}

@@ -90,7 +90,7 @@ class PacienteController extends Controller
     public function triagens(Paciente $paciente)
     {
         return response()->json([
-            'triagens' => $paciente->triagens()->with('medico')->paginate(15)
+            'triagens' => $paciente->triagens()->with('enfermeiro')->paginate(15)
         ]);
     }
 }

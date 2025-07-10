@@ -41,4 +41,19 @@ class UserController extends Controller
         $perPage = $request->get('per_page', 15);
         return response()->json($query->paginate($perPage));
     }
+
+    public function destroy($id)
+    {
+        $user = User::findOrFail($id);
+        $user->delete();
+        return response()->json(['message' => 'Usuário deletado com sucesso.']);
+    }
+
+    public function update(Request $request, $id)
+    {
+        $user = User::findOrFail($id);
+        $user->fill($request->all());
+        $user->save();
+        return response()->json(['message' => 'Usuário atualizado com sucesso.', 'user' => $user]);
+    }
 } 

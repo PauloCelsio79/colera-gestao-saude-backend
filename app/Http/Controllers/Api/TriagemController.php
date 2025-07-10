@@ -18,7 +18,7 @@ class TriagemController extends Controller
      */
     public function index(Request $request)
     {
-        $query = Triagem::with(['paciente', 'medico']);
+        $query = Triagem::with(['paciente', 'enfermeiro']);
 
         // Filtro por nível de risco
         if ($request->has('nivel_risco')) {
@@ -70,7 +70,7 @@ class TriagemController extends Controller
 
         return response()->json([
             'message' => 'Triagem realizada com sucesso',
-            'triagem' => $triagem->load(['paciente', 'medico'])
+            'triagem' => $triagem->load(['paciente', 'enfermeiro'])
         ], 201);
     }
 
@@ -80,7 +80,7 @@ class TriagemController extends Controller
     public function show(Triagem $triagem)
     {
         return response()->json([
-            'triagem' => $triagem->load(['paciente', 'medico', 'encaminhamento.hospital'])
+            'triagem' => $triagem->load(['paciente', 'enfermeiro', 'encaminhamento.hospital'])
         ]);
     }
 
@@ -90,7 +90,7 @@ class TriagemController extends Controller
     public function update(UpdateTriagemRequest $request, Triagem $triagem)
     {
         // Verifica se o usuário é médico
-        if (!auth()->user()->isMedico()) {
+        if (!auth()->user()->isEnfermeiro()) {
             return response()->json([
                 'message' => 'Apenas médicos podem alterar triagens'
             ], 403);
@@ -112,7 +112,7 @@ class TriagemController extends Controller
 
         return response()->json([
             'message' => 'Triagem atualizada com sucesso',
-            'triagem' => $triagem->fresh(['paciente', 'medico', 'encaminhamento.hospital'])
+            'triagem' => $triagem->fresh(['paciente', 'enfermeiro', 'encaminhamento.hospital'])
         ]);
     }
 
@@ -122,7 +122,7 @@ class TriagemController extends Controller
     public function destroy(Triagem $triagem)
     {
         // Verifica se o usuário é médico ou admin
-        if (!auth()->user()->isMedico() && !auth()->user()->isAdmin()) {
+        if (!auth()->user()->isEnfermeiro() && !auth()->user()->isAdmin()) {
             return response()->json([
                 'message' => 'Apenas médicos e administradores podem excluir triagens'
             ], 403);
@@ -142,7 +142,7 @@ class TriagemController extends Controller
 
         return response()->json([
             'message' => 'Triagem restaurada com sucesso',
-            'triagem' => $triagem->load(['paciente', 'medico'])
+            'triagem' => $triagem->load(['paciente', 'enfermeiro'])
         ]);
     }
 

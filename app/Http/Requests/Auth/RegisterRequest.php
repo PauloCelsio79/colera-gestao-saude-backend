@@ -35,7 +35,7 @@ class RegisterRequest extends FormRequest
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
             'password' => ['required', 'confirmed', Password::defaults()],
-            'tipo' => ['required', 'string', 'in:admin,medico,gestor,tecnico'],
+            'tipo' => ['required', 'string', 'in:admin,enfermeiro,gestor,tecnico'],
             'telefone' => ['required', 'string', 'max:20']
         ];
     }

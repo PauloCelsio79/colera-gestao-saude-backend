@@ -31,7 +31,7 @@ class Triagem extends Model
         return $this->belongsTo(Paciente::class);
     }
 
-    public function medico()
+    public function enfermeiro()
     {
         return $this->belongsTo(User::class, 'user_id');
     }
